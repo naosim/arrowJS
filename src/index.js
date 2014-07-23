@@ -32,21 +32,36 @@ var exchange = function(ajsText) {
     // 処理部分の終端を返す
     var getArrowEndIndex = function(afterArrow) {
         afterArrow = afterArrow.trim();
-        var nest = 0;
-        for(var i = 0; i < afterArrow.length; i++) {
-            var c = afterArrow.charAt(i);
-            if(START_NEST_CHARS.contains(c)) {
-                nest++;
-            } else if(END_NEST_CHARS.contains(c)) {
-                nest--;
-                if(nest <= 0) {
-                    return i;
+        if(afterArrow.charAt(0) === '{') {
+            // ネストが0になるポイントを探す
+            var nest = 0;
+            for(var i = 0; i < afterArrow.length; i++) {
+                var c = afterArrow.charAt(i);
+                if('{'.contains(c)) {
+                    nest++;
+                } else if('}'.contains(c)) {
+                    nest--;
+                    if(nest == 0) {
+                        return i;
+                    }
                 }
-            } else if(nest <= 0 && END_CHARS.contains(c)) {
-                return i - 1;
             }
+        } else {
+            // ネストゼロで終了文字を探す
+            var nest = 0;
+            for(var i = 0; i < afterArrow.length; i++) {
+                var c = afterArrow.charAt(i);
+                if(START_NEST_CHARS.contains(c)) {
+                    nest++;
+                } else if(END_NEST_CHARS.contains(c)) {
+                    nest--;
+                } else if(nest <= 0 && END_CHARS.contains(c)) {
+                    return i - 1;
+                }
 
+            }
         }
+
     };
 
     var getParams = function(params) {
@@ -67,6 +82,10 @@ var exchange = function(ajsText) {
         }
     };
 
+    var hasThis = function(process) {
+        return process.contains('this.');
+    }
+
     var arrowIndex = 0;
     // アローがなくなるまで繰り返す
     while((arrowIndex = ajsText.indexOf(ARROW)) != -1) {
@@ -80,11 +99,15 @@ var exchange = function(ajsText) {
         params = getParams(params);
         var process = afterArrow.substring(0, endIndex + 1);
         process = getProcess(process);
+
+        var bind = hasThis(process) ? '.bind(this)' : '';
+
+
         var afterFunction = afterArrow.trim().substring(endIndex + 1);
         if(!afterFunction) afterFunction = '';
 
         ajsText = ajsText.substring(0, startIndex)
-            + 'function(' + params + ') { ' + process + ' }' + afterFunction;
+            + 'function(' + params + ') { ' + process + ' }' + bind + afterFunction;
     }
     return ajsText;
 };
@@ -138,12 +161,14 @@ var StringEscape = function() {
 //     + 'var c = "こ\\ん=>ばん}は"\n'
 //     + 'var a = s => s.length;';
 
-// var input = 'var a = s => {\n s++; \n return s.length; }';
+// var input = 'var a = s => {\n var a, b; \n s++; \n return s.length; }';
 // var input = 'hoge( s => s.substring(3, 10), b);';
 // var input = 'hoge( s => t => s + t  , b );';
 // var input = 'hoge( s => s + t  , b );';
 // var input = 'var a = (s) => s.length;';
-var input = 'var a =s1d=> s.length;';
+// var input = 'var a =s1d=> s.length;';
+// var input = 'var a = s1d => this.length;';
+var input = 'hoge( s => s.substring(10)(3, 1).index + 5, b);';
 
 var stringEscape = StringEscape();
 var escapedProgram = stringEscape.escape(input);
