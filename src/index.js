@@ -14,7 +14,7 @@ String.prototype.contains = function(str) {
     return this.indexOf(str) != -1;
 }
 
-var exchange = function(ajsText) {
+var exchange = function(ajsText, thisBindFlag) {
     // パラメータ部分の開始位置を返す
     var getArrowStartIndex = function(beforeArrow) {
         var lastChar = beforeArrow.charAt(beforeArrow.lastIndex());
@@ -81,7 +81,7 @@ var exchange = function(ajsText) {
     };
 
     var hasThis = function(process) {
-        return process.contains('this.');
+        return thisBindFlag ? process.contains('this.') : false;
     }
 
     var stringEscape = StringEscape();
@@ -89,7 +89,7 @@ var exchange = function(ajsText) {
 
     var arrowIndex = 0;
     // アローがなくなるまで繰り返す
-    while((arrowIndex = ajsText.indexOf(ARROW)) != -1) {
+    while((arrowIndex = ajsText.lastIndexOf(ARROW)) != -1) {
         var beforeArrow = ajsText.substring(0, arrowIndex).trimRight();
         var afterArrow = ajsText.substring(arrowIndex + ARROW_LENGTH).trimLeft();
 

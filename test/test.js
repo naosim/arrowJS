@@ -54,6 +54,17 @@ describe('結合試験', function(){
       var input = '  var a = (s) => { \n    s += \'あい=>う{えお\';\n    return s.length; };';
       assert.equal('  var a = function(s) { \n    s += \'あい=>う{えお\';\n    return s.length; };', exchange(input));
     });
+
+    it('bind', function(){
+      var input = ' \t var a = s => s.length + this.p;';
+      assert.equal(' \t var a = function(s) { return s.length + this.p; }.bind(this);', exchange(input, true));
+    });
+
+    it('bind ブロック', function(){
+      var input = '  var a = (s) => { \n    this.p++;\n    return s.length; };';
+      assert.equal('  var a = function(s) { \n    this.p++;\n    return s.length; }.bind(this);', exchange(input, true));
+    });
+
   });
 
   describe('複雑', function(){
@@ -64,6 +75,11 @@ describe('結合試験', function(){
     it('アロー関数の中にアロー関数', function(){
       var input = ' \t var a = s => { var b = (t, r) => { return t + r}; return b(1, 2) + s;}';
       assert.equal(' \t var a = function(s) { var b = function(t, r) { return t + r }; return b(1, 2) + s; }', exchange(input));
+    });
+
+    it('アロー関数の中にアロー関数でバインド', function(){
+      var input = ' \t var a = s => { var b = (t, r) => { return this.p + r}; return b(1, 2) + s;}';
+      assert.equal(' \t var a = function(s) { var b = function(t, r) { return this.p + r }.bind(this); return b(1, 2) + s; }.bind(this)', exchange(input, true));
     });
   });
 
