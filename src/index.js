@@ -8,15 +8,15 @@ var ARROW_LENGTH = ARROW.length;
 
 String.prototype.lastIndex = function() {
     return this.length - 1;
-}
+};
 
 String.prototype.contains = function(str) {
     return this.indexOf(str) != -1;
-}
+};
 
 String.prototype.startWith = function(str) {
     return this.indexOf(str) === 0;
-}
+};
 
 var exchange = function(ajsText, thisBindFlag) {
     // パラメータ部分の開始位置を返す
@@ -70,7 +70,7 @@ var exchange = function(ajsText, thisBindFlag) {
     var getParams = function(beforeArrow, startIndex) {
         var params = beforeArrow.substring(startIndex, arrowIndex).trim();
         return params.startWith('(') ? params.substring(1, params.length - 1) : params;
-    }
+    };
 
     var getProcess = function(afterArrow, endIndex) {
         var process = afterArrow.substring(0, endIndex + 1).trim();
@@ -83,7 +83,7 @@ var exchange = function(ajsText, thisBindFlag) {
 
     var hasThis = function(process) {
         return thisBindFlag ? process.contains('this.') : false;
-    }
+    };
 
     var stringEscape = StringEscape();
     ajsText = stringEscape.escape(ajsText);
@@ -150,7 +150,7 @@ var StringEscape = function() {
 
         },
     }
-}
+};
 
 module.exports.StringEscape = StringEscape;
 module.exports.exchange = exchange;
