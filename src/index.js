@@ -17,7 +17,6 @@ String.prototype.contains = function(str) {
 var exchange = function(ajsText) {
     // パラメータ部分の開始位置を返す
     var getArrowStartIndex = function(beforeArrow) {
-        beforeArrow = beforeArrow.trim();
         var lastChar = beforeArrow.charAt(beforeArrow.lastIndex());
         if(lastChar !== ')') {
             for(var i = beforeArrow.length - 1; i >= 0; i--) {
@@ -31,7 +30,6 @@ var exchange = function(ajsText) {
 
     // 処理部分の終端を返す
     var getArrowEndIndex = function(afterArrow) {
-        afterArrow = afterArrow.trim();
         if(afterArrow.charAt(0) === '{') {
             // ネストが0になるポイントを探す
             var nest = 0;
@@ -76,9 +74,9 @@ var exchange = function(ajsText) {
     var getProcess = function(process) {
         process = process.trim();
         if(process.charAt(0) === '{') {
-            return process.substring(1, process.length - 1);
+            return process.substring(1, process.length - 1).trimRight() + ' ';
         } else {
-            return 'return ' + process + ';';
+            return ' return ' + process + '; ';
         }
     };
 
@@ -89,8 +87,8 @@ var exchange = function(ajsText) {
     var arrowIndex = 0;
     // アローがなくなるまで繰り返す
     while((arrowIndex = ajsText.indexOf(ARROW)) != -1) {
-        var beforeArrow = ajsText.substring(0, arrowIndex).trim();
-        var afterArrow = ajsText.substring(arrowIndex + ARROW_LENGTH).trim();
+        var beforeArrow = ajsText.substring(0, arrowIndex).trimRight();
+        var afterArrow = ajsText.substring(arrowIndex + ARROW_LENGTH).trimLeft();
 
         var startIndex = getArrowStartIndex(beforeArrow);
         var endIndex = getArrowEndIndex(afterArrow);
@@ -102,12 +100,11 @@ var exchange = function(ajsText) {
 
         var bind = hasThis(process) ? '.bind(this)' : '';
 
-
-        var afterFunction = afterArrow.trim().substring(endIndex + 1);
+        var afterFunction = afterArrow.trimLeft().substring(endIndex + 1);
         if(!afterFunction) afterFunction = '';
 
         ajsText = ajsText.substring(0, startIndex)
-            + 'function(' + params + ') { ' + process + ' }' + bind + afterFunction;
+            + 'function(' + params + ') {' + process + '}' + bind + afterFunction;
     }
     return ajsText;
 };
@@ -155,6 +152,9 @@ var StringEscape = function() {
     }
 }
 
+module.exports.StringEscape = StringEscape;
+module.exports.exchange = exchange;
+
 
 
 // var input = 'var b = \'こん$に\\\'ちは\'\n'
@@ -168,13 +168,14 @@ var StringEscape = function() {
 // var input = 'var a = (s) => s.length;';
 // var input = 'var a =s1d=> s.length;';
 // var input = 'var a = s1d => this.length;';
-var input = 'hoge( s => s.substring(10)(3, 1).index + 5, b);';
-
-var stringEscape = StringEscape();
-var escapedProgram = stringEscape.escape(input);
-escapedProgram = exchange(escapedProgram);
-var output = stringEscape.unescape(escapedProgram);
-console.log(output);
+// var input = '   hoge( s => s.substring(10)(3, 1).index + 5, b);   // ほげ   ';
+// var input = 'var a = s => s.length;';
+//
+// var stringEscape = StringEscape();
+// var escapedProgram = stringEscape.escape(input);
+// escapedProgram = exchange(escapedProgram);
+// var output = stringEscape.unescape(escapedProgram);
+// console.log(output);
 
 /*
 基本パターン
