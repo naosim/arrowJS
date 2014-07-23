@@ -84,6 +84,9 @@ var exchange = function(ajsText) {
         return process.contains('this.');
     }
 
+    var stringEscape = StringEscape();
+    ajsText = stringEscape.escape(ajsText);
+
     var arrowIndex = 0;
     // アローがなくなるまで繰り返す
     while((arrowIndex = ajsText.indexOf(ARROW)) != -1) {
@@ -106,7 +109,7 @@ var exchange = function(ajsText) {
         ajsText = ajsText.substring(0, startIndex)
             + 'function(' + params + ') {' + process + '}' + bind + afterFunction;
     }
-    return ajsText;
+    return stringEscape.unescape(ajsText);
 };
 
 var StringEscape = function() {

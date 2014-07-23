@@ -49,6 +49,11 @@ describe('結合試験', function(){
       var input = '  var a = (s) => { \n    s++;\n    return s.length; };';
       assert.equal('  var a = function(s) { \n    s++;\n    return s.length; };', exchange(input));
     });
+
+    it('文字列', function(){
+      var input = '  var a = (s) => { \n    s += \'あい=>う{えお\';\n    return s.length; };';
+      assert.equal('  var a = function(s) { \n    s += \'あい=>う{えお\';\n    return s.length; };', exchange(input));
+    });
   });
 
   describe('複雑', function(){
