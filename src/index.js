@@ -14,6 +14,10 @@ String.prototype.contains = function(str) {
     return this.indexOf(str) != -1;
 }
 
+String.prototype.startWith = function(str) {
+    return this.indexOf(str) === 0;
+}
+
 var exchange = function(ajsText, thisBindFlag) {
     // パラメータ部分の開始位置を返す
     var getParamStartIndex = function(beforeArrow) {
@@ -34,9 +38,9 @@ var exchange = function(ajsText, thisBindFlag) {
             var nest = 0;
             for(var i = 0; i < afterArrow.length; i++) {
                 var c = afterArrow.charAt(i);
-                if('{'.contains(c)) {
+                if(c === '{') {
                     nest++;
-                } else if('}'.contains(c)) {
+                } else if(c === '}') {
                     nest--;
                     if(nest == 0) {
                         return i;
@@ -60,21 +64,17 @@ var exchange = function(ajsText, thisBindFlag) {
             }
         };
 
-        return afterArrow.charAt(0) === '{' ? getBlockEndIndex(afterArrow) : getLineEndIndex(afterArrow);
+        return afterArrow.startWith('{') ? getBlockEndIndex(afterArrow) : getLineEndIndex(afterArrow);
     };
 
     var getParams = function(beforeArrow, startIndex) {
         var params = beforeArrow.substring(startIndex, arrowIndex).trim();
-        if(params.charAt(0) === '(') {
-            return params.substring(1, params.length - 1);
-        } else {
-            return params;
-        }
+        return params.startWith('(') ? params.substring(1, params.length - 1) : params;
     }
 
     var getProcess = function(afterArrow, endIndex) {
         var process = afterArrow.substring(0, endIndex + 1).trim();
-        if(process.charAt(0) === '{') {
+        if(process.startWith('{')) {
             return process.substring(1, process.length - 1).trimRight() + ' ';
         } else {
             return ' return ' + process + '; ';
