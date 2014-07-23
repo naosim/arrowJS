@@ -1,0 +1,26 @@
+{
+  "name": "arrowJS",
+  "version": "0.1.0",
+  "description": "AltJS that can use Arrow function",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naosim/arrowJS.git"
+  },
+  "keywords": [
+    "altjs",
+    "arrowfunction"
+  ],
+  "author": "naosim",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/naosim/arrowJS/issues"
+  },
+  "homepage": "https://github.com/naosim/arrowJS"
+}
