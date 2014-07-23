@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/naosim/arrowJS/issues"
   },
-  "homepage": "https://github.com/naosim/arrowJS"
+  "homepage": "https://github.com/naosim/arrowJS",
+  "devDependencies": {
+    "mocha": "^1.20.1"
+  }
 }
