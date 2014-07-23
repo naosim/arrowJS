@@ -16,7 +16,7 @@ String.prototype.contains = function(str) {
 
 var exchange = function(ajsText, thisBindFlag) {
     // パラメータ部分の開始位置を返す
-    var getArrowStartIndex = function(beforeArrow) {
+    var getParamStartIndex = function(beforeArrow) {
         var lastChar = beforeArrow.charAt(beforeArrow.lastIndex());
         if(lastChar !== ')') {
             for(var i = beforeArrow.length - 1; i >= 0; i--) {
@@ -29,9 +29,8 @@ var exchange = function(ajsText, thisBindFlag) {
     };
 
     // 処理部分の終端を返す
-    var getArrowEndIndex = function(afterArrow) {
-        if(afterArrow.charAt(0) === '{') {
-            // ネストが0になるポイントを探す
+    var getProcessEndIndex = function(afterArrow) {
+        var getBlockEndIndex = function(afterArrow) {
             var nest = 0;
             for(var i = 0; i < afterArrow.length; i++) {
                 var c = afterArrow.charAt(i);
@@ -44,7 +43,9 @@ var exchange = function(ajsText, thisBindFlag) {
                     }
                 }
             }
-        } else {
+        };
+
+        var getLineEndIndex = function(afterArrow) {
             // ネストゼロで終了文字を探す
             var nest = 0;
             for(var i = 0; i < afterArrow.length; i++) {
@@ -56,14 +57,14 @@ var exchange = function(ajsText, thisBindFlag) {
                 } else if(nest <= 0 && END_CHARS.contains(c)) {
                     return i - 1;
                 }
-
             }
-        }
+        };
 
+        return afterArrow.charAt(0) === '{' ? getBlockEndIndex(afterArrow) : getLineEndIndex(afterArrow);
     };
 
-    var getParams = function(params) {
-        params = params.trim();
+    var getParams = function(beforeArrow, startIndex) {
+        var params = beforeArrow.substring(startIndex, arrowIndex).trim();
         if(params.charAt(0) === '(') {
             return params.substring(1, params.length - 1);
         } else {
@@ -71,8 +72,8 @@ var exchange = function(ajsText, thisBindFlag) {
         }
     }
 
-    var getProcess = function(process) {
-        process = process.trim();
+    var getProcess = function(afterArrow, endIndex) {
+        var process = afterArrow.substring(0, endIndex + 1).trim();
         if(process.charAt(0) === '{') {
             return process.substring(1, process.length - 1).trimRight() + ' ';
         } else {
@@ -93,21 +94,17 @@ var exchange = function(ajsText, thisBindFlag) {
         var beforeArrow = ajsText.substring(0, arrowIndex).trimRight();
         var afterArrow = ajsText.substring(arrowIndex + ARROW_LENGTH).trimLeft();
 
-        var startIndex = getArrowStartIndex(beforeArrow);
-        var endIndex = getArrowEndIndex(afterArrow);
+        var paramStartIndex = getParamStartIndex(beforeArrow);
+        var processEndIndex = getProcessEndIndex(afterArrow);
 
-        var params = beforeArrow.substring(startIndex, arrowIndex);
-        params = getParams(params);
-        var process = afterArrow.substring(0, endIndex + 1);
-        process = getProcess(process);
+        var params = getParams(beforeArrow, paramStartIndex);
+        var process = getProcess(afterArrow, processEndIndex);
 
         var bind = hasThis(process) ? '.bind(this)' : '';
 
-        var afterFunction = afterArrow.trimLeft().substring(endIndex + 1);
-        if(!afterFunction) afterFunction = '';
-
-        ajsText = ajsText.substring(0, startIndex)
-            + 'function(' + params + ') {' + process + '}' + bind + afterFunction;
+        ajsText = beforeArrow.substring(0, paramStartIndex)
+            + 'function(' + params + ') {' + process + '}'
+            + bind + afterArrow.trimLeft().substring(processEndIndex + 1);
     }
     return stringEscape.unescape(ajsText);
 };
@@ -157,28 +154,6 @@ var StringEscape = function() {
 
 module.exports.StringEscape = StringEscape;
 module.exports.exchange = exchange;
-
-
-
-// var input = 'var b = \'こん$に\\\'ちは\'\n'
-//     + 'var c = "こ\\ん=>ばん}は"\n'
-//     + 'var a = s => s.length;';
-
-// var input = 'var a = s => {\n var a, b; \n s++; \n return s.length; }';
-// var input = 'hoge( s => s.substring(3, 10), b);';
-// var input = 'hoge( s => t => s + t  , b );';
-// var input = 'hoge( s => s + t  , b );';
-// var input = 'var a = (s) => s.length;';
-// var input = 'var a =s1d=> s.length;';
-// var input = 'var a = s1d => this.length;';
-// var input = '   hoge( s => s.substring(10)(3, 1).index + 5, b);   // ほげ   ';
-// var input = 'var a = s => s.length;';
-//
-// var stringEscape = StringEscape();
-// var escapedProgram = stringEscape.escape(input);
-// escapedProgram = exchange(escapedProgram);
-// var output = stringEscape.unescape(escapedProgram);
-// console.log(output);
 
 /*
 基本パターン
