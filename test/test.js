@@ -82,6 +82,11 @@ describe('結合試験', function(){
       var input = ' \t var a = s => { var b = (t, r) => { return this.p + r}; return b(1, 2) + s;}';
       assert.equal(' \t var a = function(s) { var b = function(t, r) { return this.p + r }.bind(this); return b(1, 2) + s; }.bind(this)', exchange(input, true));
     });
+
+    it('3項演算子の中', function(){
+      var input = 'var a = n == 1 ? s => s + 1 : s => s - 1;';
+      assert.equal('var a = n == 1 ? function(s) { return s + 1; }: function(s) { return s - 1; };', exchange(input, true));
+    });
   });
 
 

@@ -1,7 +1,7 @@
 var START_NEST_CHARS = '([{';
 var END_NEST_CHARS = ')]}';
-var END_CHARS = ',;';
-var ABC = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$1234567890';
+var END_CHARS = ',;:';
+var ABC = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890$_';
 
 var ARROW = '=>';
 var ARROW_LENGTH = ARROW.length;
