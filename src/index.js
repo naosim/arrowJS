@@ -10,6 +10,10 @@ String.prototype.lastIndex = function() {
     return this.length - 1;
 };
 
+String.prototype.lastChar = function() {
+    return this.charAt(this.lastIndex());
+};
+
 String.prototype.contains = function(str) {
     return this.indexOf(str) != -1;
 };
@@ -21,8 +25,8 @@ String.prototype.startWith = function(str) {
 var exchange = function(ajsText, thisBindFlag) {
     // パラメータ部分の開始位置を返す
     var getParamStartIndex = function(beforeArrow) {
-        var lastChar = beforeArrow.charAt(beforeArrow.lastIndex());
-        if(lastChar !== ')') {
+        if(beforeArrow.lastChar() !== ')') {
+            // 単語の始まりを探す
             for(var i = beforeArrow.length - 1; i >= 0; i--) {
                 var c = beforeArrow.charAt(i);
                 if(!ABC.contains(c)) return i + 1;

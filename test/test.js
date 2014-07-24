@@ -1,5 +1,6 @@
+console.log(process.env);
 var assert = require("assert")
-var exchange = require("src/index").exchange;
+var exchange = require(process.env.PWD + "/src/index.js").exchange;
 
 describe('結合試験', function(){
   describe('引数部分', function(){
