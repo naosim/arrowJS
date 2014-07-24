@@ -6,6 +6,8 @@ var ABC = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$1234567890';
 var ARROW = '=>';
 var ARROW_LENGTH = ARROW.length;
 
+var ERROR_LOOP_COUNT = 1000;
+
 String.prototype.lastIndex = function() {
     return this.length - 1;
 };
@@ -22,6 +24,14 @@ String.prototype.startWith = function(str) {
     return this.indexOf(str) === 0;
 };
 
+String.prototype.lineNumber = function(charIndex) {
+    return this.substring(0, charIndex + 1).split('\n').length - 1;
+};
+
+String.prototype.getLine = function(charIndex) {
+    return this.split('\n')[this.lineNumber(charIndex)];
+};
+
 var exchange = function(ajsText, thisBindFlag) {
     // パラメータ部分の開始位置を返す
     var getParamStartIndex = function(beforeArrow) {
@@ -31,8 +41,11 @@ var exchange = function(ajsText, thisBindFlag) {
                 var c = beforeArrow.charAt(i);
                 if(!ABC.contains(c)) return i + 1;
             }
+            return 0;
         } else {
-            return beforeArrow.lastIndexOf('(');
+            var result = beforeArrow.lastIndexOf('(');
+            if(result != -1) return result;
+            throw 'Arrow param not found';
         }
     };
 
@@ -51,6 +64,8 @@ var exchange = function(ajsText, thisBindFlag) {
                     }
                 }
             }
+
+            throw "Arrow block close not found";
         };
 
         var getLineEndIndex = function(afterArrow) {
@@ -66,6 +81,8 @@ var exchange = function(ajsText, thisBindFlag) {
                     return i - 1;
                 }
             }
+
+            throw "Arrow close not found";
         };
 
         return afterArrow.startWith('{') ? getBlockEndIndex(afterArrow) : getLineEndIndex(afterArrow);
@@ -94,21 +111,28 @@ var exchange = function(ajsText, thisBindFlag) {
 
     var arrowIndex = 0;
     // アローがなくなるまで繰り返す
-    while((arrowIndex = ajsText.lastIndexOf(ARROW)) != -1) {
-        var beforeArrow = ajsText.substring(0, arrowIndex).trimRight();
-        var afterArrow = ajsText.substring(arrowIndex + ARROW_LENGTH).trimLeft();
+    try {
+        var loopCount = 0;
+        while((arrowIndex = ajsText.lastIndexOf(ARROW)) != -1) {
+            var beforeArrow = ajsText.substring(0, arrowIndex).trimRight();
+            var afterArrow = ajsText.substring(arrowIndex + ARROW_LENGTH).trimLeft();
 
-        var paramStartIndex = getParamStartIndex(beforeArrow);
-        var processEndIndex = getProcessEndIndex(afterArrow);
+            var paramStartIndex = getParamStartIndex(beforeArrow);
+            var processEndIndex = getProcessEndIndex(afterArrow);
 
-        var params = getParams(beforeArrow, paramStartIndex);
-        var process = getProcess(afterArrow, processEndIndex);
+            var params = getParams(beforeArrow, paramStartIndex);
+            var process = getProcess(afterArrow, processEndIndex);
 
-        var bind = hasThis(process) ? '.bind(this)' : '';
+            var bind = hasThis(process) ? '.bind(this)' : '';
 
-        ajsText = beforeArrow.substring(0, paramStartIndex)
-            + 'function(' + params + ') {' + process + '}'
-            + bind + afterArrow.trimLeft().substring(processEndIndex + 1);
+            ajsText = beforeArrow.substring(0, paramStartIndex)
+                + 'function(' + params + ') {' + process + '}'
+                + bind + afterArrow.trimLeft().substring(processEndIndex + 1);
+
+            if(loopCount++ > ERROR_LOOP_COUNT) throw 'UnknownError';
+        }
+    } catch(e) {
+        throw e + ":" + (ajsText.lineNumber(arrowIndex) + 1) + '\n' + ajsText.getLine(arrowIndex);
     }
     return stringEscape.unescape(ajsText);
 };
